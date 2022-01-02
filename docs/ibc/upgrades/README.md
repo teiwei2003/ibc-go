@@ -1,10 +1,4 @@
-<!--
-order: false
-parent:
-  order: 3
--->
-
-### Upgrading IBC Chains Overview
+# Upgrading IBC Chains Overview
 
 This directory contains information on how to upgrade an IBC chain without breaking counterparty clients and connections. 
 

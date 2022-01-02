@@ -1,9 +1,3 @@
-<!--
-order: false
-parent: 
-  order: 1
--->
-
 # Overview
 
 Learn about IBC, its components, and IBC use cases. {synopsis}

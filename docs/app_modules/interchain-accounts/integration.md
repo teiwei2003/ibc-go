@@ -1,7 +1,3 @@
-<!--
-order: 2
--->
-
 # Integrating Interchain Accounts into a Chain
 
 Learn how to integrate Interchain Accounts host and controller functionality to your chain. The following document only applies for Cosmos SDK chains.

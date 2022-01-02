@@ -1,7 +1,3 @@
----
-order: 1
----
-
 # Roadmap ibc-go
 
 _Lastest update: Dec 22, 2021_

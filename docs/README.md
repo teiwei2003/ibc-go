@@ -1,9 +1,3 @@
-<!--
-title: IBC Go Documentation
-footer:
-  newsletter: false
--->
-
 # IBC
 
 Welcome to the IBC-Go documentation!

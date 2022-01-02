@@ -1,7 +1,3 @@
-<!--
-order: 3
--->
-
 # Building an ICA authentication module
 
 The controller module is used for account registration and packet sending. 

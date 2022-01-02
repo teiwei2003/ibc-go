@@ -1,7 +1,3 @@
-<!--
-order: 1
--->
-
 # Overview
 
 Learn about what the Interchain Accounts module is, and how to build custom modules that utilize Interchain Accounts functionality {synopsis}

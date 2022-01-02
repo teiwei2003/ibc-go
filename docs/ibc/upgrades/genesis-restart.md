@@ -1,7 +1,3 @@
-<!--
-order: 3
--->
-
 # Genesis Restart Upgrades
 
 Learn how to upgrade your chain and counterparty clients using genesis restarts. {synopsis}

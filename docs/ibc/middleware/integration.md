@@ -1,7 +1,3 @@
-<!--
-order: 2
--->
-
 # Integrating IBC Middleware into a Chain
 
 Learn how to integrate IBC middleware(s) with a base application to your chain. The following document only applies for Cosmos SDK chains.

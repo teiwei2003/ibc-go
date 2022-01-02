@@ -1,7 +1,3 @@
-<!--
-order: 1
--->
-
 # IBC Middleware
 
 Learn how to write your own custom middleware to wrap an IBC application, and understand how to hook different middleware to IBC base applications to form different IBC application stacks {synopsis}.

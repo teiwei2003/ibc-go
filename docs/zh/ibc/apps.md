@@ -1,37 +1,37 @@
-# IBC Applications
+# IBC 应用程序
 
-Learn how to configure your application to use IBC and send data packets to other chains. {synopsis}
+了解如何配置您的应用程序以使用 IBC 并将数据包发送到其他链。 {概要}
 
-This document serves as a guide for developers who want to write their own Inter-blockchain
-Communication Protocol (IBC) applications for custom use cases.
+本文档可作为想要编写自己的 Inter-blockchain 的开发人员的指南
+用于自定义用例的通信协议 (IBC) 应用程序。
 
-Due to the modular design of the IBC protocol, IBC
-application developers do not need to concern themselves with the low-level details of clients,
-connections, and proof verification. Nevertheless a brief explanation of the lower levels of the
-stack is given so that application developers may have a high-level understanding of the IBC
-protocol. Then the document goes into detail on the abstraction layer most relevant for application
-developers (channels and ports), and describes how to define your own custom packets, and
-`IBCModule` callbacks.
+由于IBC协议的模块化设计，IBC
+应用程序开发人员不需要关心客户端的底层细节，
+连接和证明验证。然而，对较低级别的简要说明
+给出堆栈以便应用程序开发人员可以对 IBC 有一个高级别的理解
+协议。然后文档详细介绍了与应用程序最相关的抽象层
+开发人员（通道和端口），并描述如何定义自己的自定义数据包，以及
+`IBCModule` 回调。
 
-To have your module interact over IBC you must: bind to a port(s), define your own packet data and acknolwedgement structs as well as how to encode/decode them, and implement the
-`IBCModule` interface. Below is a more detailed explanation of how to write an IBC application
-module correctly.
+要让您的模块通过 IBC 进行交互，您必须：绑定到端口，定义您自己的数据包数据和确认结构以及如何对它们进行编码/解码，并实现
+`IBCModule` 接口。以下是如何编写 IBC 应用程序的更详细说明
+模块正确。
 
-## Pre-requisites Readings
+## 先决条件阅读
 
-- [IBC Overview](./overview.md)) {prereq}
-- [IBC default integration](./integration.md) {prereq}
+- [IBC 概览](./overview.md)) {prereq}
+- [IBC 默认集成](./integration.md) {prereq}
 
-## Create a custom IBC application module
+##创建自定义IBC应用程序模块
 
-### Implement `IBCModule` Interface and callbacks
+### 实现`IBCModule` 接口和回调
 
-The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
-interface](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types/module.go). This
-interface contains all of the callbacks IBC expects modules to implement. This section will describe
-the callbacks that are called during channel handshake execution.
+Cosmos SDK 期望所有 IBC 模块都实现 [`IBCModule`
+接口]（https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types/module.go）。 这
+接口包含 IBC 期望模块实现的所有回调。 本节将介绍
+在通道握手执行期间调用的回调。
 
-Here are the channel handshake callbacks that modules are expected to implement:
+以下是模块预期实现的通道握手回调：
 
 ```go
 // Called by IBC Handler on MsgOpenInit
@@ -125,9 +125,9 @@ OnChanOpenConfirm(
 }
 ```
 
-The channel closing handshake will also invoke module callbacks that can return errors to abort the
-closing handshake. Closing a channel is a 2-step handshake, the initiating chain calls
-`ChanCloseInit` and the finalizing chain calls `ChanCloseConfirm`.
+通道关闭握手还将调用模块回调，这些回调可以返回错误以中止
+结束握手。 关闭通道是两步握手，发起链调用
+`ChanCloseInit` 和终结链调用 `ChanCloseConfirm`。
 
 ```go
 // Called by IBC Handler on MsgCloseInit
@@ -157,35 +157,35 @@ OnChanCloseConfirm(
 }
 ```
 
-#### Channel Handshake Version Negotiation
+#### 通道握手版本协商
 
-Application modules are expected to verify versioning used during the channel handshake procedure.
+应用程序模块应验证在通道握手过程中使用的版本控制。
 
-* `ChanOpenInit` callback should verify that the `MsgChanOpenInit.Version` is valid
-* `ChanOpenTry` callback should construct the application version used for both channel ends. If no application version can be constructed, it must return an error. 
-* `ChanOpenAck` callback should verify that the `MsgChanOpenAck.CounterpartyVersion` is valid and supported.
+* `ChanOpenInit` 回调应该验证 `MsgChanOpenInit.Version` 是否有效
+* `ChanOpenTry` 回调应该构造用于通道两端的应用程序版本。如果无法构建应用程序版本，则必须返回错误。
+* `ChanOpenAck` 回调应该验证 `MsgChanOpenAck.CounterpartyVersion` 是否有效并受支持。
 
-IBC expects application modules to perform application version negotiation in `OnChanOpenTry`. The negotiated version
-must be returned to core IBC. If the version cannot be negotiated, an error should be returned.
+IBC 期望应用程序模块在“OnChanOpenTry”中执行应用程序版本协商。协商版本
+必须返回到核心 IBC。如果无法协商版本，则应返回错误。
 
-Versions must be strings but can implement any versioning structure. If your application plans to
-have linear releases then semantic versioning is recommended. If your application plans to release
-various features in between major releases then it is advised to use the same versioning scheme
-as IBC. This versioning scheme specifies a version identifier and compatible feature set with
-that identifier. Valid version selection includes selecting a compatible version identifier with
-a subset of features supported by your application for that version. The struct is used for this
-scheme can be found in `03-connection/types`.
+版本必须是字符串，但可以实现任何版本控制结构。如果您的应用程序计划
+有线性版本，然后推荐语义版本控制。如果您的应用程序计划发布
+主要版本之间的各种功能，然后建议使用相同的版本控制方案
+作为IBC。此版本控制方案指定了版本标识符和兼容的功能集
+那个标识符。有效的版本选择包括选择兼容的版本标识符
+您的应用程序对该版本支持的功能子集。该结构用于此
+方案可以在“03-connection/types”中找到。
 
-Since the version type is a string, applications have the ability to do simple version verification
-via string matching or they can use the already impelemented versioning system and pass the proto
-encoded version into each handhshake call as necessary.
+由于版本类型是字符串，应用程序可以做简单的版本验证
+通过字符串匹配，或者他们可以使用已经实现的版本控制系统并通过原型
+根据需要将编码版本编码到每个握手调用中。
 
-ICS20 currently implements basic string matching with a single supported version.
+ICS20 目前使用单个支持的版本实现基本字符串匹配。
 
-### Bind Ports
+### 绑定端口
 
-Currently, ports must be bound on app initialization. A module may bind to ports in `InitGenesis`
-like so:
+目前，端口必须在应用程序初始化时绑定。模块可以绑定到 `InitGenesis` 中的端口
+像这样：
 
 ```go
 func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState) {
@@ -210,17 +210,17 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState
 }
 ```
 
-### Custom Packets
+### 自定义数据包
 
-Modules connected by a channel must agree on what application data they are sending over the
-channel, as well as how they will encode/decode it. This process is not specified by IBC as it is up
-to each application module to determine how to implement this agreement. However, for most
-applications this will happen as a version negotiation during the channel handshake. While more
-complex version negotiation is possible to implement inside the channel opening handshake, a very
-simple version negotation is implemented in the [ibc-transfer module](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer/module.go).
+通过通道连接的模块必须就它们通过通道发送的应用程序数据达成一致。
+通道，以及他们将如何编码/解码它。 IBC 未指定此过程，因为它已启动
+到每个应用模块来决定如何执行这个协议。 然而，对于大多数
+应用程序这将在通道握手期间作为版本协商发生。 虽然更多
+可以在通道开启握手内部实现复杂的版本协商，一个非常
+[ibc-transfer 模块](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer/module.go) 中实现了简单的版本协商。
 
-Thus, a module must define its a custom packet data structure, along with a well-defined way to
-encode and decode it to and from `[]byte`.
+因此，模块必须定义它的自定义数据包数据结构，以及定义良好的方法
+将其编码和解码为`[]byte`。
 
 ```go
 // Custom packet data defined in application module
@@ -255,31 +255,31 @@ packetData := DecodePacketData(packet.Data)
 // handle received custom packet data
 ```
 
-#### Packet Flow Handling
+#### 数据包流处理
 
-Just as IBC expected modules to implement callbacks for channel handshakes, IBC also expects modules
-to implement callbacks for handling the packet flow through a channel.
+正如 IBC 期望模块实现通道握手回调一样，IBC 也期望模块
+实现回调以处理通过通道的数据包流。
 
-Once a module A and module B are connected to each other, relayers can start relaying packets and
-acknowledgements back and forth on the channel.
+一旦模块 A 和模块 B 相互连接，中继器就可以开始中继数据包和
+在频道上来回确认。
 
-![IBC packet flow diagram](https://media.githubusercontent.com/media/cosmos/ibc/old/spec/ics-004-channel-and-packet-semantics/channel-state-machine.png)
+![IBC数据包流程图](https://media.githubusercontent.com/media/cosmos/ibc/old/spec/ics-004-channel-and-packet-semantics/channel-state-machine.png)
 
-Briefly, a successful packet flow works as follows:
+简而言之，一个成功的数据包流的工作原理如下：
 
-1. module A sends a packet through the IBC module
-2. the packet is received by module B
-3. if module B writes an acknowledgement of the packet then module A will process the
-   acknowledgement
-4. if the packet is not successfully received before the timeout, then module A processes the
-   packet's timeout.
+1.模块A通过IBC模块发送数据包
+2.数据包被模块B接收
+3. 如果模块 B 写入数据包的确认，则模块 A 将处理
+   确认
+4.如果在超时前没有成功接收到数据包，则模块A处理
+   数据包超时。
 
-##### Sending Packets
+##### 发送数据包
 
-Modules do not send packets through callbacks, since the modules initiate the action of sending
-packets to the IBC module, as opposed to other parts of the packet flow where msgs sent to the IBC
-module must trigger execution on the port-bound module through the use of callbacks. Thus, to send a
-packet a module simply needs to call `SendPacket` on the `IBCChannelKeeper`.
+模块不通过回调发送数据包，因为模块发起发送的动作
+数据包发送到 IBC 模块，而不是将消息发送到 IBC 的数据包流的其他部分
+模块必须通过使用回调触发端口绑定模块的执行。因此，要发送一个
+一个模块只需要在“IBCChannelKeeper”上调用“SendPacket”。
 
 ```go
 // retrieve the dynamic capability for this channel
@@ -291,29 +291,29 @@ packet.Data = data
 IBCChannelKeeper.SendPacket(ctx, channelCap, packet)
 ```
 
-::: warning
-In order to prevent modules from sending packets on channels they do not own, IBC expects
-modules to pass in the correct channel capability for the packet's source channel.
+：：： 警告
+为了防止模块在它们不拥有的通道上发送数据包，IBC 期望
+模块为数据包的源通道传递正确的通道能力。
 :::
 
-##### Receiving Packets
+##### 接收数据包
 
-To handle receiving packets, the module must implement the `OnRecvPacket` callback. This gets
-invoked by the IBC module after the packet has been proved valid and correctly processed by the IBC
-keepers. Thus, the `OnRecvPacket` callback only needs to worry about making the appropriate state
-changes given the packet data without worrying about whether the packet is valid or not.
+为了处理接收数据包，模块必须实现`OnRecvPacket` 回调。这得到
+在 IBC 证明数据包有效并正确处理后，由 IBC 模块调用
+守门员。因此，`OnRecvPacket` 回调只需要关心使适当的状态
+更改给定的数据包数据而不必担心数据包是否有效。
 
-Modules may return to the IBC handler an acknowledgement which implements the Acknowledgement interface.
-The IBC handler will then commit this acknowledgement of the packet so that a relayer may relay the
-acknowledgement back to the sender module.
+模块可以向 IBC 处理程序返回一个实现确认接口的确认。
+IBC 处理程序然后将提交该数据包的确认，以便中继器可以中继
+确认返回发送器模块。
 
-The state changes that occurred during this callback will only be written if:
-- the acknowledgement was successful as indicated by the `Success()` function of the acknowledgement
-- if the acknowledgement returned is nil indicating that an asynchronous process is occurring
+仅在以下情况下才会写入此回调期间发生的状态更改：
+- 确认成功，如确认的 `Success()` 函数所示
+- 如果返回的确认为 nil 表示正在发生异步进程
 
-NOTE: Applications which process asynchronous acknowledgements must handle reverting state changes
-when appropriate. Any state changes that occurred during the `OnRecvPacket` callback will be written 
-for asynchronous acknowledgements. 
+注意：处理异步确认的应用程序必须处理恢复状态更改
+在适当的时候。在“OnRecvPacket”回调期间发生的任何状态更改都将被写入
+用于异步确认。
 
 ```go
 OnRecvPacket(
@@ -344,28 +344,28 @@ type Acknowledgement interface {
 }
 ```
 
-### Acknowledgements
+### 致谢
 
-Modules may commit an acknowledgement upon receiving and processing a packet in the case of synchronous packet processing.
-In the case where a packet is processed at some later point after the packet has been received (asynchronous execution), the acknowledgement 
-will be written once the packet has been processed by the application which may be well after the packet receipt.
+在同步数据包处理的情况下，模块可以在接收和处理数据包时提交确认。
+如果在接收到数据包后的某个时间点处理数据包（异步执行），则确认
+将在应用程序处理数据包后写入，这可能是在数据包接收之后。
 
-NOTE: Most blockchain modules will want to use the synchronous execution model in which the module processes and writes the acknowledgement 
-for a packet as soon as it has been received from the IBC module.
+注意：大多数区块链模块都希望使用同步执行模型，在该模型中模块处理和写入确认
+对于从 IBC 模块接收到的数据包。
 
-This acknowledgement can then be relayed back to the original sender chain, which can take action
-depending on the contents of the acknowledgement.
+然后可以将此确认转发回原始发送者链，后者可以采取行动
+取决于确认的内容。
 
-Just as packet data was opaque to IBC, acknowledgements are similarly opaque. Modules must pass and
-receive acknowledegments with the IBC modules as byte strings.
+正如分组数据对 IBC 是不透明的，确认同样是不透明的。模块必须通过和
+接收带有 IBC 模块的确认作为字节字符串。
 
-Thus, modules must agree on how to encode/decode acknowledgements. The process of creating an
-acknowledgement struct along with encoding and decoding it, is very similar to the packet data
-example above. [ICS 04](https://github.com/cosmos/ibc/blob/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope)
-specifies a recommended format for acknowledgements. This acknowledgement type can be imported from
-[channel types](https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel/types).
+因此，模块必须就如何编码/解码确认达成一致。创建一个的过程
+确认结构连同它的编码和解码，非常类似于分组数据
+上面的例子。 [ICS 04](https://github.com/cosmos/ibc/blob/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope)
+指定推荐的确认格式。此确认类型可以从
+[频道类型]（https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel/types）。
 
-While modules may choose arbitrary acknowledgement structs, a default acknowledgement types is provided by IBC [here](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/channel/v1/channel.proto):
+虽然模块可以选择任意确认结构，但 IBC [此处](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/channel/v1/channel.原型）：
 
 ```proto
 // Acknowledgement is the recommended acknowledgement format to be used by
@@ -384,17 +384,17 @@ message Acknowledgement {
 }
 ```
 
-#### Acknowledging Packets
+#### 确认数据包
 
-After a module writes an acknowledgement, a relayer can relay back the acknowledgement to the sender module. The sender module can
-then process the acknowledgement using the `OnAcknowledgementPacket` callback. The contents of the
-acknowledgement is entirely upto the modules on the channel (just like the packet data); however, it
-may often contain information on whether the packet was successfully processed along
-with some additional data that could be useful for remediation if the packet processing failed.
+在模块写入确认后，中继器可以将确认中继回发送器模块。 发送模块可以
+然后使用`OnAcknowledgementPacket`回调处理确认。 的内容
+确认完全取决于通道上的模块（就像分组数据一样）； 然而，它
+可能经常包含有关数据包是否被成功处理的信息
+如果数据包处理失败，一些额外的数据可能对补救有用。
 
-Since the modules are responsible for agreeing on an encoding/decoding standard for packet data and
-acknowledgements, IBC will pass in the acknowledgements as `[]byte` to this callback. The callback
-is responsible for decoding the acknowledgement and processing it.
+由于模块负责就分组数据的编码/解码标准达成一致，并且
+确认，IBC 会将确认作为 `[]byte` 传递给这个回调。 回调
+负责解码确认并处理它。
 
 ```go
 OnAcknowledgementPacket(
@@ -411,14 +411,14 @@ OnAcknowledgementPacket(
 }
 ```
 
-#### Timeout Packets
+#### 超时数据包
 
-If the timeout for a packet is reached before the packet is successfully received or the 
-counterparty channel end is closed before the packet is successfully received, then the receiving
-chain can no longer process it. Thus, the sending chain must process the timeout using
-`OnTimeoutPacket` to handle this situation. Again the IBC module will verify that the timeout is
-indeed valid, so our module only needs to implement the state machine logic for what to do once a
-timeout is reached and the packet can no longer be received.
+如果在成功接收数据包之前达到数据包的超时时间或
+对方通道端在数据包被成功接收之前关闭，然后接收
+链无法再处理它。 因此，发送链必须使用
+`OnTimeoutPacket` 来处理这种情况。 IBC 模块将再次验证超时是否为
+确实有效，所以我们的模块只需要实现一次做什么的状态机逻辑
+超时时间已到，无法再接收数据包。
 
 ```go
 OnTimeoutPacket(
@@ -429,11 +429,11 @@ OnTimeoutPacket(
 }
 ```
 
-### Routing
+### 路由
 
-As mentioned above, modules must implement the IBC module interface (which contains both channel
-handshake callbacks and packet handling callbacks). The concrete implementation of this interface
-must be registered with the module name as a route on the IBC `Router`.
+如上所述，模块必须实现 IBC 模块接口（其中包含通道
+握手回调和数据包处理回调）。 这个接口的具体实现
+必须使用模块名称注册为 IBC `Router` 上的路由。
 
 ```go
 // app.go
@@ -452,22 +452,22 @@ ibcRouter.AddRoute(moduleName, moduleCallbacks)
 app.IBCKeeper.SetRouter(ibcRouter)
 ```
 
-## Working Example
+## 工作示例
 
-For a real working example of an IBC application, you can look through the `ibc-transfer` module
-which implements everything discussed above.
+有关 IBC 应用程序的实际工作示例，您可以查看“ibc-transfer”模块
+它实现了上面讨论的所有内容。
 
-Here are the useful parts of the module to look at:
+以下是要查看的模块的有用部分：
 
-[Binding to transfer
-port](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/types/genesis.go)
+[绑定转移
+端口]（https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/types/genesis.go）
 
-[Sending transfer
-packets](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/keeper/relay.go)
+[发送转账
+数据包]（https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/keeper/relay.go）
 
-[Implementing IBC
-callbacks](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/module.go)
+[实施IBC
+回调]（https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/module.go）
 
-## Next {hide}
+## 下一个{hide}
 
-Learn about [building modules](https://github.com/cosmos/cosmos-sdk/blob/master/docs/building-modules/intro.md) {hide}
+了解 [构建模块](https://github.com/cosmos/cosmos-sdk/blob/master/docs/building-modules/intro.md) {hide}

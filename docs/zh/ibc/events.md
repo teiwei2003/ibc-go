@@ -1,17 +1,17 @@
-# Events
+# 事件
 
-**NOTE**: This document is unmaintained and may be out of date!
+**注意**：此文档未维护，可能已过期！
 
-The IBC module emits the following events. It can be expected that the type `message`,
-with an attirbute key of `action` will represent the first event for each message
-being processed as emitted by the SDK's baseapp. Each IBC TAO message will
-also emit its module name in the format 'ibc_sub-modulename'.
+IBC 模块发出以下事件。 可以预期类型`message`，
+带有 `action` 属性键的将代表每条消息的第一个事件
+正在处理由 SDK 的 baseapp 发出。 每个 IBC TAO 消息将
+还以“ibc_sub-modulename”格式发出其模块名称。
 
-All the events for the Channel handshakes, `SendPacket`, `RecvPacket`, `AcknowledgePacket`, 
-`TimeoutPacket` and `TimeoutOnClose` will emit additional events not specified here due to
-callbacks to IBC applications.
+Channel握手的所有事件，`SendPacket`，`RecvPacket`，`AcknowledgePacket`，
+`TimeoutPacket` 和 `TimeoutOnClose` 将发出此处未指定的额外事件，因为
+对 IBC 应用程序的回调。
 
-## ICS 02 - Client
+## ICS 02 - 客户端
 
 ### MsgCreateClient
 

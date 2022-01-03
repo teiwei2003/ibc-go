@@ -1,28 +1,28 @@
-# Integration
+＃ 一体化
 
-Learn how to integrate IBC to your application and send data packets to other chains. {synopsis}
+了解如何将 IBC 集成到您的应用程序并将数据包发送到其他链。 {概要}
 
-This document outlines the required steps to integrate and configure the [IBC
-module](https://github.com/cosmos/ibc-go/tree/main/modules/core) to your Cosmos SDK application and
-send fungible token transfers to other chains.
+本文档概述了集成和配置 [IBC
+模块](https://github.com/cosmos/ibc-go/tree/main/modules/core) 到您的 Cosmos SDK 应用程序和
+将可替代的代币转移发送到其他链。
 
-## Integrating the IBC module
+## 集成IBC模块
 
-Integrating the IBC module to your SDK-based application is straighforward. The general changes can be summarized in the following steps:
+将 IBC 模块集成到您的基于 SDK 的应用程序非常简单。一般的变化可以概括为以下步骤：
 
-- Add required modules to the `module.BasicManager`
-- Define additional `Keeper` fields for the new modules on the `App` type
-- Add the module's `StoreKeys` and initialize their `Keepers`
-- Set up corresponding routers and routes for the `ibc` module
-- Add the modules to the module `Manager`
-- Add modules to `Begin/EndBlockers` and `InitGenesis`
-- Update the module `SimulationManager` to enable simulations
+- 将所需的模块添加到`module.BasicManager`
+- 为`App` 类型的新模块定义额外的`Keeper` 字段
+- 添加模块的`StoreKeys`并初始化它们的`Keepers`
+- 为 `ibc` 模块设置相应的路由器和路由
+- 将模块添加到模块`Manager`
+- 将模块添加到`Begin/EndBlockers` 和`InitGenesis`
+- 更新模块“SimulationManager”以启用模拟
 
-### Module `BasicManager` and `ModuleAccount` permissions
+### 模块`BasicManager` 和`ModuleAccount` 权限
 
-The first step is to add the following modules to the `BasicManager`: `x/capability`, `x/ibc`, 
-and `x/ibc-transfer`. After that, we need to grant `Minter` and `Burner` permissions to
-the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
+第一步是将以下模块添加到`BasicManager`：`x/capability`、`x/ibc`、
+和`x/ibc-transfer`。之后，我们需要授予`Minter`和`Burner`权限
+`ibc-transfer``ModuleAccount` 用于铸造和销毁中继代币。
 
 ```go
 // app.go
@@ -45,7 +45,7 @@ var (
 
 ### Application fields
 
-Then, we need to register the `Keepers` as follows:
+然后，我们需要按如下方式注册`Keepers`：
 
 ```go
 // app.go
@@ -68,10 +68,10 @@ type App struct {
 
 ### Configure the `Keepers`
 
-During initialization, besides initializing the IBC `Keepers` (for the  `x/ibc`, and
-`x/ibc-transfer` modules), we need to grant specific capabilities through the capability module
-`ScopedKeepers` so that we can authenticate the object-capability permissions for each of the IBC
-channels.
+在初始化期间，除了初始化 IBC `Keepers`（对于 `x/ibc`，以及
+`x/ibc-transfer` 模块），我们需要通过能力模块授予特定的能力
+`ScopedKeepers` 以便我们可以验证每个 IBC 的对象能力权限
+渠道。
 
 ```go
 func NewApp(...args) *App {
@@ -103,20 +103,20 @@ func NewApp(...args) *App {
 }
 ```
 
-### Register `Routers`
+### 注册`路由器`
 
-IBC needs to know which module is bound to which port so that it can route packets to the
-appropriate module and call the appropriate callbacks. The port to module name mapping is handled by
-IBC's port `Keeper`. However, the mapping from module name to the relevant callbacks is accomplished
-by the port
-[`Router`](https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port/types/router.go) on the
-IBC module.
+IBC 需要知道哪个模块绑定到哪个端口，以便它可以将数据包路由到
+适当的模块并调用适当的回调。 端口到模块名称的映射由
+IBC 的港口“Keeper”。 但是，模块名称到相关回调的映射已经完成
+由港口
+[`Router`](https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port/types/router.go) 在
+IBC 模块。
 
-Adding the module routes allows the IBC handler to call the appropriate callback when processing a
-channel handshake or a packet.
+添加模块路由允许 IBC 处理程序在处理一个
+通道握手或数据包。
 
-Currently, a `Router` is static so it must be initialized and set correctly on app initialization.
-Once the `Router` has been set, no new routes can be added.
+目前，`Router` 是静态的，因此必须在应用程序初始化时对其进行初始化和正确设置。
+一旦设置了`Router`，就不能添加新的路由。
 
 ```go
 // app.go
@@ -135,7 +135,7 @@ func NewApp(...args) *App {
 
 ### Module Managers
 
-In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/master/docs/building-modules/simulator.md).
+为了使用 IBC，我们需要将新模块添加到模块 `Manager` 和 `SimulationManager`，以防您的应用程序支持 [simulations](https://github.com/cosmos/cosmos-sdk/blob/ master/docs/building-modules/simulator.md）。
 
 ```go
 // app.go
@@ -163,23 +163,23 @@ func NewApp(...args) *App {
   // .. continues
 ```
 
-### Application ABCI Ordering
+### 应用 ABCI 订购
 
-One addition from IBC is the concept of `HistoricalEntries` which are stored on the staking module.
-Each entry contains the historical information for the `Header` and `ValidatorSet` of this chain which is stored
-at each height during the `BeginBlock` call. The historical info is required to introspect the
-past historical info at any given height in order to verify the light client `ConsensusState` during the
-connection handhake.
+IBC 的一项新增功能是存储在 staking 模块中的“HistoricalEntries”概念。
+每个条目都包含此链的“Header”和“ValidatorSet”的历史信息，这些信息被存储
+在“BeginBlock”调用期间的每个高度。 需要历史信息来反省
+过去在任何给定高度的历史信息，以便在此期间验证轻客户端“ConsensusState”
+连接握手。
 
-The IBC module also has
-[`BeginBlock`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/abci.go) logic as
-well. This is optional as it is only required if your application uses the [localhost
-client](https://github.com/cosmos/ibc/blob/master/spec/client/ics-009-loopback-client) to connect two
-different modules from the same chain.
+IBC 模块还具有
+[`BeginBlock`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/abci.go) 逻辑为
+好。 这是可选的，因为只有在您的应用程序使用 [localhost
+客户端](https://github.com/cosmos/ibc/blob/master/spec/client/ics-009-loopback-client) 连接两个
+来自同一链的不同模块。
 
-::: tip
-Only register the ibc module to the `SetOrderBeginBlockers` if your application will use the
-localhost (_aka_ loopback) client.
+：：： 小费
+如果您的应用程序将使用
+本地主机（_aka_ 环回）客户端。
 :::
 
 ```go
@@ -207,14 +207,14 @@ func NewApp(...args) *App {
   // .. continues
 ```
 
-::: warning
-**IMPORTANT**: The capability module **must** be declared first in `SetOrderInitGenesis`
+：：： 警告
+**重要**：功能模块**必须**在`SetOrderInitGenesis`中首先声明
 :::
 
-That's it! You have now wired up the IBC module and are now able to send fungible tokens across
-different chains. If you want to have a broader view of the changes take a look into the SDK's
-[`SimApp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go).
+而已！ 您现在已经连接了 IBC 模块，现在可以发送可替代的代币
+不同的链。 如果您想更广泛地了解更改，请查看 SDK 的
+[`SimApp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go)。
 
-## Next {hide}
+## 下一个{hide}
 
-Learn about how to create [custom IBC modules](./apps.md) for your application {hide}
+了解如何为您的应用程序创建 [自定义 IBC 模块](./apps.md) {hide}

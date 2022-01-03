@@ -1,56 +1,56 @@
-# Governance Proposals
+# 治理提案
 
-In uncommon situations, a highly valued client may become frozen due to uncontrollable 
-circumstances. A highly valued client might have hundreds of channels being actively used.
-Some of those channels might have a significant amount of locked tokens used for ICS 20.
+在不常见的情况下，高价值客户可能会因无法控制而被冻结
+情况。一个高价值的客户可能有数百个渠道正在被积极使用。
+其中一些频道可能有大量用于 ICS 20 的锁定令牌。
 
-If the one third of the validator set of the chain the client represents decides to collude,
-they can sign off on two valid but conflicting headers each signed by the other one third
-of the honest validator set. The light client can now be updated with two valid, but conflicting
-headers at the same height. The light client cannot know which header is trustworthy and therefore
-evidence of such misbehaviour is likely to be submitted resulting in a frozen light client. 
+如果客户端所代表的链中三分之一的验证者决定串通，
+他们可以签署两个有效但相互冲突的标头，每个标头都由另一个三分之一签名
+诚实的验证者集。轻客户端现在可以更新为两个有效但相互冲突的
+相同高度的标题。轻客户端无法知道哪个头是值得信赖的，因此
+提交此类不当行为的证据很可能会导致冻结轻客户端。
 
-Frozen light clients cannot be updated under any circumstance except via a governance proposal.
-Since a quorum of validators can sign arbitrary state roots which may not be valid executions 
-of the state machine, a governance proposal has been added to ease the complexity of unfreezing
-or updating clients which have become "stuck". Without this mechanism, validator sets would need
-to construct a state root to unfreeze the client. Unfreezing clients, re-enables all of the channels 
-built upon that client. This may result in recovery of otherwise lost funds. 
+除非通过治理提案，否则在任何情况下都不能更新冻结的轻客户端。
+由于法定人数的验证者可以签署可能不是有效执行的任意状态根
+在状态机中，添加了治理提案以减轻解冻的复杂性
+或更新已“卡住”的客户端。如果没有这种机制，验证器集将需要
+构造一个状态根来解冻客户端。解冻客户端，重新启用所有渠道
+建立在那个客户之上。这可能会导致收回其他损失的资金。
 
-Tendermint light clients may become expired if the trusting period has passed since their 
-last update. This may occur if relayers stop submitting headers to update the clients.
+如果信任期已过，Tendermint 轻客户端可能会过期
+最后更新。如果中继器停止提交标头以更新客户端，则可能会发生这种情况。
 
-An unplanned upgrade by the counterparty chain may also result in expired clients. If the counterparty 
-chain undergoes an unplanned upgrade, there may be no commitment to that upgrade signed by the validator 
-set before the chain-id changes. In this situation, the validator set of the last valid update for the 
-light client is never expected to produce another valid header since the chain-id has changed, which will 
-ultimately lead the on-chain light client to become expired.  
+交易对手链的计划外升级也可能导致客户过期。如果对方
+链经历了计划外的升级，验证者可能不会对该升级做出承诺
+在链 ID 更改之前设置。在这种情况下，最后一个有效更新的验证器集
+轻客户端永远不会产生另一个有效的头，因为链 ID 已经改变，这将
+最终导致链上轻客户端过期。
 
-In the case that a highly valued light client is frozen, expired, or rendered non-updateable, a
-governance proposal may be submitted to update this client, known as the subject client. The 
-proposal includes the client identifier for the subject and the client identifier for a substitute
-client. Light client implementations may implement custom updating logic, but in most cases, 
-the subject will be updated to the latest consensus state of the substitute client, if the proposal passes.
-The substitute client is used as a "stand in" while the subject is on trial. It is best practice to create 
-a substitute client *after* the subject has become frozen to avoid the substitute from also becoming frozen. 
-An active substitute client allows headers to be submitted during the voting period to prevent accidental expiry 
-once the proposal passes. 
+如果高价值的轻客户端被冻结、过期或不可更新，
+可以提交治理提案以更新此客户端，称为主题客户端。这
+提议包括主题的客户端标识符和替代的客户端标识符
+客户。轻客户端实现可能会实现自定义更新逻辑，但在大多数情况下，
+如果提案通过，主题将更新为替代客户端的最新共识状态。
+当受试者受审时，替代客户被用作“替身”。最好的做法是创建
+替代客户*在*主题已被冻结后，以避免替代客户也被冻结。
+活跃的替代客户端允许在投票期间提交标头，以防止意外过期
+一旦提案通过。
 
-# How to recover an expired client with a governance proposal
+# 如何使用治理提案恢复过期的客户端
 
-See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](../architecture/adr-026-ibc-client-recovery-mechanisms.md)
+另请参阅相关文档：[ADR-026, IBC 客户端恢复机制](../architecture/adr-026-ibc-client-recovery-mechanisms.md)
 
-### Preconditions 
-- The chain is updated with ibc-go >= v1.1.0.
-- Recovery parameters are set to `true` for the Tendermint light client (this determines if a governance proposal can be used). If the recovery parameters are set to `false`, recovery will require custom migration code.
-- The client identifier of an active client for the same counterparty chain.
-- The governance deposit.
+### 前提条件
+- 链更新为 ibc-go >= v1.1.0。
+- Tendermint 轻客户端的恢复参数设置为“true”（这决定了是否可以使用治理提案）。 如果恢复参数设置为“false”，则恢复将需要自定义迁移代码。
+- 同一交易对手链的活跃客户的客户标识符。
+- 治理存款。
 
-## Steps
+＃＃ 脚步
 
-### Step 1
+＃＃＃ 步骤1
 
-Check if the client is attached to the expected `chain-id`. For example, for an expired Tendermint client representing the Akash chain the client state looks like this on querying the client state:
+检查客户端是否附加到预期的“chain-id”。 例如，对于代表 Akash 链的过期 Tendermint 客户端，客户端状态在查询客户端状态时如下所示：
 
 ```
 {
@@ -63,22 +63,22 @@ Check if the client is attached to the expected `chain-id`. For example, for an 
 }
 ```
 
-The client is attached to the expected Akash `chain-id` and the recovery parameters (`allow_update_after_expiry` and `allow_update_after_misbehaviour`) are set to `true`.
+客户端附加到预期的 Akash `chain-id` 并且恢复参数（`allow_update_after_expiry` 和 `allow_update_after_misbehaviour`）设置为 `true`。
 
-### Step 2
+＃＃＃ 第2步
 
-If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governance proposal to recover the client by executing this via cli:
+如果链已更新为 ibc-go >= v1.1.0，任何人都可以通过 cli 执行此提交治理提案以恢复客户端：
 
 ```
 <binary> tx gov submit-proposal update-client <expired-client-id> <active-client-id>
 ```
 
-The `<active-client-id>` should be a client identifier on the same chain as the expired or frozen client. This client identifier should connect to the same chain as the expired or frozen client. This means: use the active client that is currently being used to relay packets between the two chains as the replacement client.
+`<active-client-id>` 应该是与过期或冻结的客户端在同一链上的客户端标识符。 此客户端标识符应连接到与过期或冻结的客户端相同的链。 这意味着：使用当前用于在两条链之间中继数据包的活动客户端作为替代客户端。
 
-After this, it is just a question of who funds the governance deposit and if the chain in question votes yes.
+在此之后，只是谁资助治理存款以及相关链是否投赞成票的问题。
 
-## Important considerations 
+## 重要注意事项
 
-Please note that from v1.0.0 of ibc-go it will not be allowed for transactions to go to expired clients anymore, so please update to at least this version to prevent similar issues in the future.
+请注意，从 ibc-go v1.0.0 开始，将不再允许交易转到过期客户端，因此请至少更新到此版本以防止将来出现类似问题。
 
-Please also note that if the client on the other end of the transaction is also expired, that client will also need to update. This process updates only one client.
+另请注意，如果交易另一端的客户端也已过期，则该客户端也需要更新。 此过程仅更新一个客户端。

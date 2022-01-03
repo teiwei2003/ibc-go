@@ -1,60 +1,60 @@
-# Overview
+＃ 概述
 
-Learn about IBC, its components, and IBC use cases. {synopsis}
+了解 IBC、其组件和 IBC 用例。 {概要}
 
-## What is the Interblockchain Communication Protocol (IBC)?
+## 什么是区块链间通信协议（IBC）？
 
-This document serves as a guide for developers who want to write their own Inter-Blockchain
-Communication protocol (IBC) applications for custom use cases.
+本文档可作为想要编写自己的 Inter-Blockchain 的开发人员的指南
+用于自定义用例的通信协议 (IBC) 应用程序。
 
-> IBC applications must be written as self-contained modules. 
+> IBC 应用程序必须编写为自包含模块。
 
-Due to the modular design of the IBC protocol, IBC
-application developers do not need to be concerned with the low-level details of clients,
-connections, and proof verification. 
+由于IBC协议的模块化设计，IBC
+应用程序开发人员不需要关心客户端的底层细节，
+连接和证明验证。
 
-This brief explanation of the lower levels of the
-stack gives application developers a broad understanding of the IBC
-protocol. Abstraction layer details for channels and ports are most relevant for application developers and describe how to define custom packets and `IBCModule` callbacks.
+对较低级别的简要说明
+堆栈使应用程序开发人员对 IBC 有广泛的了解
+协议。通道和端口的抽象层详细信息与应用程序开发人员最相关，并描述了如何定义自定义数据包和“IBCModule”回调。
 
-The requirements to have your module interact over IBC are: 
+让您的模块通过 IBC 进行交互的要求是：
 
-- Bind to a port or ports.
-- Define your packet data.
-- Use the default acknowledgment struct provided by core IBC or optionally define a custom acknowledgment struct.
-- Standardize an encoding of the packet data.
-- Implement the `IBCModule` interface.
+- 绑定到一个或多个端口。
+- 定义您的数据包数据。
+- 使用核心 IBC 提供的默认确认结构或可选地定义自定义确认结构。
+- 标准化分组数据的编码。
+- 实现“IBCModule”接口。
 
-Read on for a detailed explanation of how to write a self-contained IBC application module.
+继续阅读有关如何编写独立 IBC 应用程序模块的详细说明。
 
-## Components Overview
+## 组件概述
 
-### [Clients](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client)
+### [客户端](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client)
 
-IBC clients are on-chain light clients. Each light client is identified by a unique client-id. 
-IBC clients track the consensus states of other blockchains, along with the proof spec necessary to 
-properly verify proofs against the client's consensus state. A client can be associated with any number 
-of connections to the counterparty chain. The client identifier is auto generated using the client type 
-and the global client counter appended in the format: `{client-type}-{N}`. 
+IBC 客户端是链上轻客户端。每个轻客户端都由唯一的客户端 ID 标识。
+IBC 客户跟踪其他区块链的共识状态，以及必要的证明规范
+根据客户的共识状态正确验证证明。一个客户可以与任何号码相关联
+与交易对手链的连接。客户端标识符是使用客户端类型自动生成的
+以及以以下格式附加的全局客户端计数器：`{client-type}-{N}`。
 
-A `ClientState` should contain chain specific and light client specific information necessary for verifying updates
-and upgrades to the IBC client. The `ClientState` may contain information such as chain-id, latest height, proof specs, 
-unbonding periods or the status of the light client. The `ClientState` should not contain information that
-is specific to a given block at a certain height, this is the function of the `CosnensusState`. Each `ConsensusState`
-should be associated with a unique block and should be referenced using a height. IBC clients are given a 
-client identifier prefixed store to store their associated client state and consensus states along with 
-any metadata associated with the consensus states. Consensus states are stored using their associated height. 
+“ClientState”应包含验证更新所需的链特定和轻客户端特定信息
+并升级到 IBC 客户端。 `ClientState` 可能包含诸如链 ID、最新高度、证明规范、
+解除绑定期或轻客户端的状态。 `ClientState` 不应包含以下信息
+特定于特定高度的给定块，这是“CosnensusState”的功能。每个`ConsensusState`
+应该与唯一的块相关联，并且应该使用高度进行引用。 IBC 客户被给予
+以客户端标识符为前缀的存储，用于存储其关联的客户端状态和共识状态以及
+与共识状态相关的任何元数据。共识状态使用其关联的高度存储。
 
-The supported IBC clients are:
+支持的 IBC 客户端是：
 
-* [Solo Machine light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/06-solomachine): Devices such as phones, browsers, or laptops.
-* [Tendermint light client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint): The default for Cosmos SDK-based chains.
-* [Localhost (loopback) client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/09-localhost): Useful for
-testing, simulation, and relaying packets to modules on the same application.
+* [Solo Machine 轻客户端](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/06-solomachine)：手机、浏览器或笔记本电脑等设备。
+* [Tendermint 轻客户端](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint)：基于 Cosmos SDK 的链的默认值。
+* [Localhost (loopback) client](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/09-localhost)：有用
+测试、模拟和将数据包中继到同一应用程序上的模块。
 
-### IBC Client Heights
+### IBC 客户高度
 
-IBC Client Heights are represented by the struct:
+IBC 客户高度由以下结构表示：
 
 ```go
 type Height struct {
@@ -63,230 +63,229 @@ type Height struct {
 }
 ```
 
-The `RevisionNumber` represents the revision of the chain that the height is representing.
-A revision typically represents a continuous, monotonically increasing range of block-heights.
-The `RevisionHeight` represents the height of the chain within the given revision.
+`RevisionNumber` 表示高度所代表的链的修订版本。
+修订通常代表一个连续的、单调增加的块高度范围。
+`RevisionHeight` 表示给定修订版中链的高度。
 
-On any reset of the `RevisionHeight`—for example, when hard-forking a Tendermint chain—
-the `RevisionNumber` will get incremented. This allows IBC clients to distinguish between a
-block-height `n` of a previous revision of the chain (at revision `p`) and block-height `n` of the current
-revision of the chain (at revision `e`).
+在“RevisionHeight”的任何重置时——例如，当硬分叉 Tendermint 链时——
+`RevisionNumber` 将增加。这允许 IBC 客户端区分
+链的前一个修订版（在修订版“p”处）的块高度“n”和当前链的块高度“n”
+链的修订版（在修订版`e`）。
 
-`Height`s that share the same revision number can be compared by simply comparing their respective `RevisionHeight`s.
-`Height`s that do not share the same revision number will only be compared using their respective `RevisionNumber`s.
-Thus a height `h` with revision number `e+1` will always be greater than a height `g` with revision number `e`,
-**REGARDLESS** of the difference in revision heights.
-
+可以通过简单地比较它们各自的“RevisionHeight”来比较共享相同修订号的“高度”。
+不共享相同修订号的 `Height` 将仅使用它们各自的 `RevisionNumber` 进行比较。
+因此，修订号为“e+1”的高度“h”将始终大于修订号为“e”的高度“g”，
+**不管**修订高度的差异。
 Ex:
 
 ```go
 Height{RevisionNumber: 3, RevisionHeight: 0} > Height{RevisionNumber: 2, RevisionHeight: 100000000000}
 ```
 
-When a Tendermint chain is running a particular revision, relayers can simply submit headers and proofs with the revision number
-given by the chain's `chainID`, and the revision height given by the Tendermint block height. When a chain updates using a hard-fork 
-and resets its block-height, it is responsible for updating its `chainID` to increment the revision number.
-IBC Tendermint clients then verifies the revision number against their `chainID` and treat the `RevisionHeight` as the Tendermint block-height.
+当 Tendermint 链正在运行特定修订版时，中继者可以简单地提交带有修订号的标题和证明
+由链的“chainID”给出，修订高度由 Tendermint 块高度给出。当链使用硬分叉更新时
+并重置其区块高度，它负责更新其“chainID”以增加修订号。
+IBC Tendermint 客户端然后根据其“chainID”验证修订号，并将“RevisionHeight”视为 Tendermint 块高度。
 
-Tendermint chains wishing to use revisions to maintain persistent IBC connections even across height-resetting upgrades must format their `chainID`s
-in the following manner: `{chainID}-{revision_number}`. On any height-resetting upgrade, the `chainID` **MUST** be updated with a higher revision number
-than the previous value.
+Tendermint 链希望使用修订来维持持久的 IBC 连接，即使在高度重置升级中也必须格式化其“chainID”
+以下列方式：`{chainID}-{revision_number}`。在任何高度重置升级中，`chainID` **必须** 更新为更高的修订号
+比之前的值。
 
-Ex:
+前任：
 
-- Before upgrade `chainID`: `gaiamainnet-3`
-- After upgrade `chainID`: `gaiamainnet-4`
+- 升级`chainID`前：`gaiamainnet-3`
+- 升级`chainID`后：`gaiamainnet-4`
 
-Clients that do not require revisions, such as the solo-machine client, simply hardcode `0` into the revision number whenever they
-need to return an IBC height when implementing IBC interfaces and use the `RevisionHeight` exclusively.
+不需要修订的客户端，例如单机客户端，只要他们简单地将“0”硬编码到修订号中
+在实现 IBC 接口时需要返回 IBC 高度，并且只使用 `RevisionHeight`。
 
-Other client-types can implement their own logic to verify the IBC heights that relayers provide in their `Update`, `Misbehavior`, and
-`Verify` functions respectively.
+其他客户端类型可以实现自己的逻辑来验证中继器在其 `Update`、`Misbehavior` 和
+分别为“验证”功能。
 
-The IBC interfaces expect an `ibcexported.Height` interface, however all clients must use the concrete implementation provided in
-`02-client/types` and reproduced above.
+IBC 接口需要一个 `ibcexported.Height` 接口，但是所有客户端必须使用提供的具体实现
+`02-client/types` 和上面转载。
 
-### [Connections](https://github.com/cosmos/ibc-go/blob/main/modules/core/03-connection)
+### [连接](https://github.com/cosmos/ibc-go/blob/main/modules/core/03-connection)
 
-Connections encapsulate two `ConnectionEnd` objects on two separate blockchains. Each
-`ConnectionEnd` is associated with a client of the other blockchain (for example, the counterparty blockchain).
-The connection handshake is responsible for verifying that the light clients on each chain are
-correct for their respective counterparties. Connections, once established, are responsible for
-facilitating all cross-chain verifications of IBC state. A connection can be associated with any
-number of channels.
+Connections 将两个“ConnectionEnd”对象封装在两个独立的区块链上。每个
+`ConnectionEnd` 与另一个区块链（例如，交易对手区块链）的客户端相关联。
+连接握手负责验证每个链上的轻客户端是
+对各自的交易对手进行修正。连接一旦建立，负责
+促进 IBC 状态的所有跨链验证。一个连接可以与任何
+通道数。
 
-### [Proofs](https://github.com/cosmos/ibc-go/blob/main/modules/core/23-commitment) and [Paths](https://github.com/cosmos/ibc-go/blob/main/modules/core/24-host)
+### [证明](https://github.com/cosmos/ibc-go/blob/main/modules/core/23-commitment) 和 [路径](https://github.com/cosmos/ibc- go/blob/main/modules/core/24-host)
   
-In IBC, blockchains do not directly pass messages to each other over the network. Instead, to
-communicate, a blockchain commits some state to a specifically defined path that is reserved for a
-specific message type and a specific counterparty. For example, for storing a specific connectionEnd as part
-of a handshake or a packet intended to be relayed to a module on the counterparty chain. A relayer
-process monitors for updates to these paths and relays messages by submitting the data stored
-under the path and a proof to the counterparty chain. 
+在 IBC 中，区块链不会直接通过网络相互传递消息。相反，要
+通信，区块链将某些状态提交到专门定义的路径，该路径保留给
+特定的消息类型和特定的交易对手。例如，用于存储特定的 connectionEnd 作为一部分
+握手或旨在中继到交易对手链上的模块的数据包。中继器
+进程监控这些路径的更新并通过提交存储的数据来中继消息
+在路径下和交易对手链的证明。
 
-Proofs are passed from core IBC to light-clients as bytes. It is up to light client implementation to interpret these bytes appropriately.
+证明以字节的形式从核心 IBC 传递到轻客户端。适当地解释这些字节取决于轻客户端实现。
 
-- The paths that all IBC implementations must use for committing IBC messages is defined in
-[ICS-24 Host State Machine Requirements](https://github.com/cosmos/ics/tree/master/spec/core/ics-024-host-requirements). 
-- The proof format that all implementations must be able to produce and verify is defined in [ICS-23 Proofs](https://github.com/confio/ics23) implementation.
+- 所有 IBC 实现必须用于提交 IBC 消息的路径定义在
+[ICS-24 主机状态机要求](https://github.com/cosmos/ics/tree/master/spec/core/ics-024-host-requirements)。
+- 所有实现必须能够生成和验证的证明格式在 [ICS-23 Proofs](https://github.com/confio/ics23) 实现中定义。
 
-### [Capabilities](https://github.com/cosmos/cosmos-sdk/blob/master/docs/core/ocap.md)
+### [功能](https://github.com/cosmos/cosmos-sdk/blob/master/docs/core/ocap.md)
 
-IBC is intended to work in execution environments where modules do not necessarily trust each
-other. Thus, IBC must authenticate module actions on ports and channels so that only modules with the
-appropriate permissions can use them. 
+IBC 旨在在模块不一定信任每个模块的执行环境中工作
+其他。因此，IBC 必须验证端口和通道上的模块操作，以便只有具有
+适当的权限可以使用它们。
 
-This module authentication is accomplished using a [dynamic
-capability store](https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-003-dynamic-capability-store.md). Upon binding to a port or
-creating a channel for a module, IBC returns a dynamic capability that the module must claim in
-order to use that port or channel. The dynamic capability module prevents other modules from using that port or channel since
-they do not own the appropriate capability.
+此模块身份验证是使用 [动态
+能力存储]（https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-003-dynamic-capability-store.md）。绑定到端口或
+为模块创建通道，IBC 返回模块必须声明的动态能力
+为了使用该端口或通道。动态能力模块阻止其他模块使用该端口或通道，因为
+他们没有适当的能力。
 
-While this background information is useful, IBC modules do not need to interact at all with
-these lower-level abstractions. The relevant abstraction layer for IBC application developers is
-that of channels and ports. IBC applications must be written as self-contained **modules**. 
+虽然这些背景信息很有用，但 IBC 模块根本不需要与
+这些较低级别的抽象。 IBC 应用程序开发人员的相关抽象层是
+通道和端口。 IBC 应用程序必须编写为独立的**模块**。
 
-A module on one blockchain can communicate with other modules on other blockchains by sending,
-receiving, and acknowledging packets through channels that are uniquely identified by the
-`(channelID, portID)` tuple. 
+一个区块链上的模块可以通过发送与其他区块链上的其他模块进行通信，
+通过唯一标识的通道接收和确认数据包
+`(channelID, portID)` 元组。
 
-A useful analogy is to consider IBC modules as internet applications on
-a computer. A channel can then be conceptualized as an IP connection, with the IBC portID being
-analogous to an IP port and the IBC channelID being analogous to an IP address. Thus, a single
-instance of an IBC module can communicate on the same port with any number of other modules and
-IBC correctly routes all packets to the relevant module using the (channelID, portID tuple). An
-IBC module can also communicate with another IBC module over multiple ports, with each
-`(portID<->portID)` packet stream being sent on a different unique channel.
+一个有用的类比是将 IBC 模块视为互联网应用程序
+一台电脑。然后可以将通道概念化为 IP 连接，其中 IBC 端口 ID 为
+类似于 IP 端口，而 IBC 通道 ID 类似于 IP 地址。因此，单
+IBC 模块的实例可以在同一端口上与任意数量的其他模块进行通信，并且
+IBC 使用 (channelID, portID 元组) 将所有数据包正确路由到相关模块。一个
+IBC 模块还可以通过多个端口与另一个 IBC 模块通信，每个端口
+`(portID<->portID)` 数据包流在不同的唯一通道上发送。
 
-### [Ports](https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port)
+### [端口](https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port)
 
-An IBC module can bind to any number of ports. Each port must be identified by a unique `portID`.
-Since IBC is designed to be secure with mutually distrusted modules operating on the same ledger,
-binding a port returns a dynamic object capability. In order to take action on a particular port
-(for example, an open channel with its portID), a module must provide the dynamic object capability to the IBC
-handler. This requirement prevents a malicious module from opening channels with ports it does not own. Thus,
-IBC modules are responsible for claiming the capability that is returned on `BindPort`.
+IBC 模块可以绑定到任意数量的端口。每个端口必须由唯一的“portID”标识。
+由于 IBC 旨在通过在同一分类帐上运行的相互不信任的模块来确保安全，
+绑定一个端口返回一个动态对象能力。为了对特定端口采取行动
+（例如，具有其端口 ID 的开放通道），模块必须向 IBC 提供动态对象能力
+处理程序。此要求可防止恶意模块打开带有它不拥有的端口的通道。因此，
+IBC 模块负责声明在`BindPort` 上返回的能力。
 
-### [Channels](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
+### [频道](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
 
-An IBC channel can be established between two IBC ports. Currently, a port is exclusively owned by a
-single module. IBC packets are sent over channels. Just as IP packets contain the destination IP
-address and IP port, and the source IP address and source IP port, IBC packets contain
-the destination portID and channelID, and the source portID and channelID. This packet structure enables IBC to
-correctly route packets to the destination module while allowing modules receiving packets to
-know the sender module.
+可以在两个 IBC 端口之间建立 IBC 通道。目前，一个港口是由一个独家拥有的
+单模块。 IBC 数据包通过通道发送。就像 IP 数据包包含目标 IP 一样
+地址和IP端口，以及源IP地址和源IP端口，IBC包包含
+目的端口号和通道号，以及源端口号和通道号。这种数据包结构使 IBC 能够
+正确地将数据包路由到目标模块，同时允许模块接收数据包
+知道发件人模块。
 
-A channel can be `ORDERED`, where packets from a sending module must be processed by the
-receiving module in the order they were sent. Or a channel can be `UNORDERED`, where packets
-from a sending module are processed in the order they arrive (might be in a different order than they were sent).
+通道可以是“ORDERED”的，其中来自发送模块的数据包必须由
+接收模块按照发送的顺序。或者一个通道可以是`UNORDERED`，其中数据包
+来自发送模块的按它们到达的顺序进行处理（可能与发送的顺序不同）。
 
-Modules can choose which channels they wish to communicate over with, thus IBC expects modules to
-implement callbacks that are called during the channel handshake. These callbacks can do custom
-channel initialization logic. If any callback returns an error, the channel handshake fails. Thus, by
-returning errors on callbacks, modules can programmatically reject and accept channels.
+模块可以选择他们希望通过哪些通道进行通信，因此 IBC 希望模块能够
+实现在通道握手期间调用的回调。这些回调可以做自定义
+通道初始化逻辑。如果任何回调返回错误，则通道握手失败。因此，由
+在回调中返回错误，模块可以以编程方式拒绝和接受通道。
 
-The channel handshake is a 4-step handshake. Briefly, if a given chain A wants to open a channel with
-chain B using an already established connection:
+通道握手是一个 4 步握手。简而言之，如果给定的链 A 想要打开一个通道
+链 B 使用已经建立的连接：
 
-1. chain A sends a `ChanOpenInit` message to signal a channel initialization attempt with chain B.
-2. chain B sends a `ChanOpenTry` message to try opening the channel on chain A.
-3. chain A sends a `ChanOpenAck` message to mark its channel end status as open.
-4. chain B sends a `ChanOpenConfirm` message to mark its channel end status as open.
+1. 链 A 发送一个 `ChanOpenInit` 消息来通知链 B 的通道初始化尝试。
+2. 链 B 发送 `ChanOpenTry` 消息尝试打开链 A 上的通道。
+3.链A发送`ChanOpenAck`消息将其通道结束状态标记为打开。
+4. 链B发送`ChanOpenConfirm`消息将其通道结束状态标记为开放。
 
-If all handshake steps are successful, the channel is opened on both sides. At each step in the handshake, the module
-associated with the `ChannelEnd` executes its callback. So
-on `ChanOpenInit`, the module on chain A executes its callback `OnChanOpenInit`.
+如果所有握手步骤都成功，则双方都打开通道。在握手的每一步，模块
+与`ChannelEnd` 关联执行其回调。所以
+在 `ChanOpenInit` 上，链 A 上的模块执行其回调 `OnChanOpenInit`。
 
-The channel identifier is auto derived in the format: `channel-{N}` where N is the next sequence to be used. 
+通道标识符以以下格式自动导出：`channel-{N}`，其中 N 是要使用的下一个序列。
 
-Just as ports came with dynamic capabilities, channel initialization returns a dynamic capability
-that the module **must** claim so that they can pass in a capability to authenticate channel actions
-like sending packets. The channel capability is passed into the callback on the first parts of the
-handshake; either `OnChanOpenInit` on the initializing chain or `OnChanOpenTry` on the other chain.
+正如端口具有动态能力一样，通道初始化返回一个动态能力
+模块 ** 必须** 声明，以便他们可以传入验证通道操作的功能
+比如发送数据包。通道能力被传递到回调的第一部分
+握手；初始化链上的“OnChanOpenInit”或另一条链上的“OnChanOpenTry”。
 
-#### Closing channels
+#### 关闭频道
 
-Closing a channel occurs in 2 handshake steps as defined in [ICS 04](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics).
+关闭通道发生在 [ICS 04](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics) 中定义的 2 个握手步骤中。
 
-`ChanCloseInit` closes a channel on the executing chain if the channel exists, it is not 
-already closed and the connection it exists upon is OPEN. Channels can only be closed by a 
-calling module or in the case of a packet timeout on an ORDERED channel.
+`ChanCloseInit` 关闭执行链上的通道，如果该通道存在，则不存在
+已经关闭并且它存在的连接是打开的。通道只能由
+调用模块或在 ORDERED 通道上的数据包超时的情况下。
 
-`ChanCloseConfirm` is a response to a counterparty channel executing `ChanCloseInit`. The channel
-on the executing chain closes if the channel exists, the channel is not already closed, 
-the connection the channel exists upon is OPEN and the executing chain successfully verifies
-that the counterparty channel has been closed.
+`ChanCloseConfirm` 是对执行 `ChanCloseInit` 的交易对手渠道的响应。这个频道
+如果通道存在，则在执行链上关闭，通道尚未关闭，
+通道所在的连接已打开并且执行链已成功验证
+交易对手渠道已关闭。
 
 
-### [Packets](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
+### [数据包](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
 
-Modules communicate with each other by sending packets over IBC channels. All
-IBC packets contain the destination `portID` and `channelID` along with the source `portID` and
-`channelID`. This packet structure allows modules to know the sender module of a given packet. IBC packets 
-contain a sequence to optionally enforce ordering. 
+模块通过在 IBC 通道上发送数据包来相互通信。全部
+IBC 数据包包含目标 `portID` 和 `channelID` 以及源 `portID` 和
+`频道ID`。这种数据包结构允许模块知道给定数据包的发送方模块。 IBC包
+包含一个序列来可选地强制排序。
 
-IBC packets also contain a `TimeoutHeight` and a `TimeoutTimestamp` that determine the deadline before the receiving module must process a packet. 
+IBC 数据包还包含一个“TimeoutHeight”和一个“TimeoutTimestamp”，用于确定接收模块必须处理数据包之前的最后期限。
 
-Modules send custom application data to each other inside the `Data []byte` field of the IBC packet.
-Thus, packet data is opaque to IBC handlers. It is incumbent on a sender module to encode
-their application-specific packet information into the `Data` field of packets. The receiver
-module must decode that `Data` back to the original application data.
+模块在 IBC 数据包的“Data []byte”字段内相互发送自定义应用程序数据。
+因此，分组数据对于 IBC 处理程序是不透明的。发送方模块有责任进行编码
+将它们特定于应用程序的数据包信息放入数据包的“数据”字段中。收件人
+模块必须将该“数据”解码回原始应用程序数据。
 
-### [Receipts and Timeouts](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
+### [收据和超时](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
 
-Since IBC works over a distributed network and relies on potentially faulty relayers to relay messages between ledgers, 
-IBC must handle the case where a packet does not get sent to its destination in a timely manner or at all. Packets must 
-specify a non-zero value for timeout height (`TimeoutHeight`) or timeout timestamp (`TimeoutTimestamp` ) after which a packet can no longer be successfully received on the destination chain.
+由于 IBC 在分布式网络上工作，并依赖于潜在故障的中继器在分类账之间中继消息，
+IBC 必须处理数据包没有及时或根本没有发送到目的地的情况。数据包必须
+为超时高度 (`TimeoutHeight`) 或超时时间戳 (`TimeoutTimestamp`) 指定一个非零值，在此之后，目标链上将无法再成功接收数据包。
 
-- The `timeoutHeight` indicates a consensus height on the destination chain after which the packet is no longer be processed, and instead counts as having timed-out.
-- The `timeoutTimestamp` indicates a timestamp on the destination chain after which the packet is no longer be processed, and instead counts as having timed-out.
+- `timeoutHeight` 表示目标链上的共识高度，在此之后不再处理数据包，而是计为超时。
+- `timeoutTimestamp` 表示目标链上的时间戳，在此之后不再处理数据包，而是计为超时。
 
-If the timeout passes without the packet being successfully received, the packet can no longer be
-received on the destination chain. The sending module can timeout the packet and take appropriate actions.
+如果超时未成功接收数据包，则无法再接收数据包
+在目标链上收到。发送模块可以使数据包超时并采取适当的措施。
 
-If the timeout is reached, then a proof of packet timeout can be submitted to the original chain. The original chain can then perform 
-application-specific logic to timeout the packet, perhaps by rolling back the packet send changes (refunding senders any locked funds, etc.).
+如果达到超时，则可以向原始链提交数据包超时的证明。然后原始链可以执行
+应用程序特定的逻辑来超时数据包，可能通过回滚数据包发送更改（退还发件人任何锁定的资金等）。
 
-- In ORDERED channels, a timeout of a single packet in the channel causes the channel to close. 
+- 在 ORDERED 通道中，通道中单个数据包的超时会导致通道关闭。
 
-    - If packet sequence `n` times out, then a packet at sequence `k > n` cannot be received without violating the contract of ORDERED channels that packets are processed in the order that they are sent. 
-    - Since ORDERED channels enforce this invariant, a proof that sequence `n` has not been received on the destination chain by the specified timeout of packet `n` is sufficient to timeout packet `n` and close the channel.
+    - 如果数据包序列 `n` 超时，那么在不违反 ORDERED 通道的约定的情况下，无法接收顺序为 `k > n` 的数据包，即按照发送顺序处理数据包。
+    - 由于 ORDERED 通道强制执行此不变量，因此在数据包 n 的指定超时之前尚未在目标链上接收到序列 n 的证据足以使数据包 n 超时并关闭通道。
 
-- In UNORDERED channels, the application-specific timeout logic for that packet is applied and the channel is not closed.
+- 在 UNORDERED 通道中，应用该数据包的特定于应用程序的超时逻辑，并且通道未关闭。
 
-    - Packets can be received in any order. 
+    - 可以按任何顺序接收数据包。
 
-    - IBC writes a packet receipt for each sequence receives in the UNORDERED channel. This receipt does not contain information; it is simply a marker intended to signify that the UNORDERED channel has received a packet at the specified sequence. 
+    - IBC 为在 UNORDERED 通道中接收的每个序列写入一个数据包接收。此收据不包含信息；它只是一个标记，用于表示 UNORDERED 通道已按指定的顺序接收到一个数据包。
 
-    - To timeout a packet on an UNORDERED channel, a proof is required that a packet receipt **does not exist** for the packet's sequence by the specified timeout.  
+    - 要使 UNORDERED 通道上的数据包超时，需要证明在指定的超时时间内收到数据包序列**不存在**的数据包。
 
-For this reason, most modules should use UNORDERED channels as they require fewer liveness guarantees to function effectively for users of that channel.
+出于这个原因，大多数模块应该使用 UNORDERED 频道，因为它们需要较少的活跃度保证才能为该频道的用户有效运行。
 
-### [Acknowledgments](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
+### [致谢](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
 
-Modules can also choose to write application-specific acknowledgments upon processing a packet. Acknowledgments can be done:
+模块还可以选择在处理数据包时写入特定于应用程序的确认。可以进行确认：
 
-- Synchronously on `OnRecvPacket` if the module processes packets as soon as they are received from IBC module. 
-- Asynchronously if module processes packets at some later point after receiving the packet.
+- 如果模块在从 IBC 模块接收到数据包后立即处理数据包，则在 `OnRecvPacket` 上同步。
+- 如果模块在接收数据包后的某个时间点处理数据包，则异步。
 
-This acknowledgment data is opaque to IBC much like the packet `Data` and is treated by IBC as a simple byte string `[]byte`. Receiver modules must encode their acknowledgment so that the sender module can decode it correctly. The encoding must be negotiated between the two parties during version negotiation in the channel handshake. 
+这个确认数据对 IBC 来说是不透明的，就像数据包“Data”一样，被 IBC 视为一个简单的字节串“[]byte”。接收器模块必须对其确认进行编码，以便发送器模块可以正确解码。编码必须在通道握手中的版本协商期间在双方之间协商。
 
-The acknowledgment can encode whether the packet processing succeeded or failed, along with additional information that allows the sender module to take appropriate action.
+确认可以编码数据包处理是成功还是失败，以及允许发送方模块采取适当行动的附加信息。
 
-After the acknowledgment has been written by the receiving chain, a relayer relays the acknowledgment back to the original sender module.
+在接收链写入确认后，中继器将确认中继回原始发送器模块。
 
-The original sender module then executes application-specific acknowledgment logic using the contents of the acknowledgment. 
+原始发送器模块然后使用确认的内容执行特定于应用程序的确认逻辑。
 
-- After an acknowledgement fails, packet-send changes can be rolled back (for example, refunding senders in ICS20).
+- 确认失败后，可以回滚数据包发送的更改（例如，在 ICS20 中退还发件人）。
 
-- After an acknowledgment is received successfully on the original sender on the chain, the corresponding packet commitment is deleted since it is no longer needed.
+- 在链上的原始发送方成功收到确认后，删除相应的数据包承诺，因为不再需要它。
 
-## Further Readings and Specs
+## 进一步阅读和规格
 
-If you want to learn more about IBC, check the following specifications:
+如果您想了解有关 IBC 的更多信息，请查看以下规格：
 
-* [IBC specification overview](https://github.com/cosmos/ibc/blob/master/README.md)
+* [IBC 规范概述](https://github.com/cosmos/ibc/blob/master/README.md)
 
-## Next {hide}
+## 下一个{hide}
 
-Learn about how to [integrate](./integration.md) IBC to your application {hide}
+了解如何 [integrate](./integration.md) IBC 到您的应用程序 {hide}

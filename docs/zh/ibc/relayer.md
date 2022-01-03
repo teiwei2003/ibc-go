@@ -1,42 +1,42 @@
-# Relayer
+# 中继器
 
-## Pre-requisites Readings
+## 先决条件阅读
 
-- [IBC Overview](./overview.md) {prereq}
-- [Events](https://github.com/cosmos/cosmos-sdk/blob/master/docs/core/events.md) {prereq}
+- [IBC 概览](./overview.md) {prereq}
+- [事件](https://github.com/cosmos/cosmos-sdk/blob/master/docs/core/events.md) {prereq}
 
-## Events
+## 事件
 
-Events are emitted for every transaction processed by the base application to indicate the execution
-of some logic clients may want to be aware of. This is extremely useful when relaying IBC packets.
-Any message that uses IBC will emit events for the corresponding TAO logic executed as defined in
-the [IBC events document](./events.md).
+为基础应用程序处理的每个事务发出事件以指示执行
+一些客户可能想要了解的逻辑。这在中继 IBC 数据包时非常有用。
+任何使用 IBC 的消息都会为执行中定义的相应 TAO 逻辑发出事件
+[IBC 事件文档](./events.md)。
 
-In the SDK, it can be assumed that for every message there is an event emitted with the type `message`,
-attribute key `action`, and an attribute value representing the type of message sent 
-(`channel_open_init` would be the attribute value for `MsgChannelOpenInit`). If a relayer queries 
-for transaction events, it can split message events using this event Type/Attribute Key pair.
+在 SDK 中，可以假设对于每条消息，都有一个类型为 `message` 的事件，
+属性键`action`，以及表示发送消息类型的属性值
+（`channel_open_init` 将是`MsgChannelOpenInit` 的属性值）。如果中继器查询
+对于事务事件，它可以使用此事件类型/属性键对拆分消息事件。
 
-The Event Type `message` with the Attribute Key `module` may be emitted multiple times for a single
-message due to application callbacks. It can be assumed that any TAO logic executed will result in 
-a module event emission with the attribute value `ibc_<submodulename>` (02-client emits `ibc_client`).
+带有属性键“module”的事件类型“message”可能会针对单个事件多次发出
+由于应用程序回调而产生的消息。可以假设执行的任何 TAO 逻辑都会导致
+具有属性值“ibc_<submodulename>”的模块事件发射（02-client 发射“ibc_client”）。
 
-### Subscribing with Tendermint 
+### 订阅 Tendermint
 
-Calling the Tendermint RPC method `Subscribe` via [Tendermint's Websocket](https://docs.tendermint.com/master/rpc/) will return events using
-Tendermint's internal representation of them. Instead of receiving back a list of events as they
-were emitted, Tendermint will return the type `map[string][]string` which maps a string in the
-form `<event_type>.<attribute_key>` to `attribute_value`. This causes extraction of the event 
-ordering to be non-trivial, but still possible.
+通过 [Tendermint 的 Websocket](https://docs.tendermint.com/master/rpc/) 调用 Tendermint RPC 方法 `Subscribe` 将使用以下方法返回事件
+Tendermint 对它们的内部表示。而不是像他们一样接收事件列表
+发出后，Tendermint 将返回类型 `map[string][]string`，它映射了
+从 `<event_type>.<attribute_key>` 到 `attribute_value`。这会导致事件的提取
+订购是非平凡的，但仍然可能。
 
-A relayer should use the `message.action` key to extract the number of messages in the transaction
-and the type of IBC transactions sent. For every IBC transaction within the string array for
-`message.action`, the necessary information should be extracted from the other event fields. If
-`send_packet` appears at index 2 in the value for `message.action`, a relayer will need to use the
-value at index 2 of the key `send_packet.packet_sequence`. This process should be repeated for each
-piece of information needed to relay a packet.
+中继者应该使用 `message.action` 键来提取交易中的消息数量
+以及发送的 IBC 交易类型。对于字符串数组中的每个 IBC 交易
+`message.action`，应该从其他事件字段中提取必要的信息。如果
+`send_packet` 出现在 `message.action` 值的索引 2 处，中继器将需要使用
+键“send_packet.packet_sequence”的索引 2 处的值。应该对每个人重复这个过程
+中继数据包所需的一条信息。
 
-## Example Implementations
+## 示例实现
 
 - [Golang Relayer](https://github.com/iqlusioninc/relayer)
-- [Hermes](https://github.com/informalsystems/ibc-rs/tree/master/relayer)
+- [爱马仕](https://github.com/informalsystems/ibc-rs/tree/master/relayer)

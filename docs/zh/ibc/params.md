@@ -1,17 +1,17 @@
-# Parameters
+＃ 参数
 
-## 02-Client
+## 02-客户端
 
-The 02-client submodule contains the following parameters:
+02-client 子模块包含以下参数：
 
 | Key              | Type | Default Value |
 |------------------|------|---------------|
 | `AllowedClients`    | []string | `"06-solomachine","07-tendermint"`        |
 
-### AllowedClients
+### 允许的客户端
 
-The allowed clients parameter defines an allowlist of client types supported by the chain. A client
-that is not registered on this list will fail upon creation or on genesis validation. Note that,
-since the client type is an arbitrary string, chains they must not register two light clients which
-return the same value for the `ClientType()` function, otherwise the allowlist check can be
-bypassed.
+allowed clients 参数定义了链支持的客户端类型的许可列表。 一个客户
+未在此列表中注册的将在创建或创世验证时失败。 注意，
+由于客户端类型是任意字符串，因此链接它们不得注册两个轻客户端
+为`ClientType()` 函数返回相同的值，否则可以进行许可名单检查
+绕过。
